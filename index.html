@@ -1,289 +1,342 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>Mapa com Isócronas de Caminhada, Veículo e Bicicleta</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css" rel="stylesheet" />
-    <style>
-        body { margin: 0; padding: 0; }
-        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-        .map-controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            z-index: 1;
-        }
-        .map-controls label {
-            display: block;
-            margin: 5px 0;
-        }
-        .map-controls input[type="range"] {
-            width: 150px;
-            margin-left: 10px; /* Espaço para o ícone */
-        }
-        .icon {
-            display: inline-block;
-            width: 24px; /* Tamanho fixo para todos os ícones */
-            height: 24px;
-            vertical-align: middle;
-            margin-right: 5px;
-        }
-        .legend {
-            margin-top: 10px;
-            padding: 10px;
-            background: white;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            border-radius: 50%;
-        }
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        .checkbox-container input[type="checkbox"] {
-            margin-right: 5px;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <title>Mapa com Isócronas Personalizáveis e Atualização de Coordenadas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    .map-controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      z-index: 1;
+      max-width: 300px;
+      font-family: Arial, sans-serif;
+    }
+    .map-controls label {
+      display: block;
+      margin: 5px 0;
+    }
+    .map-controls input[type="range"] {
+      width: 150px;
+      margin-left: 10px; /* Espaço para o ícone */
+    }
+    .icon {
+      display: inline-block;
+      width: 24px; /* Tamanho fixo para todos os ícones */
+      height: 24px;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+    .legend {
+      margin-top: 10px;
+      padding: 10px;
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      font-family: Arial, sans-serif;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      border-radius: 50%;
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .checkbox-container input[type="checkbox"] {
+      margin-right: 5px;
+    }
+    /* Caixa de entrada de coordenadas (canto superior direito) */
+    .coordinate-input {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      z-index: 1;
+      font-family: Arial, sans-serif;
+    }
+    .coordinate-input input {
+      width: 200px;
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
 <body>
-    <div id="map"></div>
-    <div class="map-controls">
-        <label>
-            <input type="radio" name="map-style" value="streets" checked> Streets
-        </label>
-        <label>
-            <input type="radio" name="map-style" value="satellite"> Satellite
-        </label>
-        <hr>
-        <!-- Slider para caminhada -->
-        <div class="checkbox-container">
-            <input type="checkbox" id="walking-checkbox" checked>
-            <label for="walking-checkbox">
-                <svg class="icon" viewBox="0 0 97.0102 229.4976" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Ícone de caminhada (seu SVG) -->
-                    <path fill="#00FF00" d="M83.9091,27.6011c2.8164-12.0996-4.7089-24.1934-16.8066-27.0098C55.0029-2.227,42.9091,5.3003,40.0908,17.398
-                        c-2.8164,12.0996,4.709,24.1933,16.8066,27.0097C68.999,47.2261,81.0908,39.7007,83.9091,27.6011z"/>
-                    <path fill="#00FF00" d="M72.6005,143.6909c-0.7587-1.2382-1.5068-2.3964-2.249-3.5185c-1.958-0.0918-3.8291-0.7334-5.4375-1.8809
-                        c-10.7168-7.6435-18.6611-16.6455-23.6035-26.7558c-3.9902-8.126-6.0117-16.8535-6.0039-25.9405
-                        c0.0254-12,3.5078-20.7031,4.5742-23.0869l0.0098-0.0176l0.0449-0.1025c1.6738-3.5615,5.2979-5.8623,9.2344-5.8623
-                        c1.5058,0,2.9648,0.3281,4.3369,0.9746c5.0752,2.3858,7.2734,8.4639,4.8975,13.5488c-0.0723,0.1709-0.1622,0.3936-0.2793,0.7002
-                        c-0.2344,0.6143-0.5918,1.6407-0.9551,2.958c-0.669,2.4327-1.4678,6.2959-1.4629,10.8877
-                        c0.0039,5.9541,1.3223,11.6622,3.9209,16.962c0.0166,0.0341,0.0381,0.0673,0.0537,0.1015
-                        c1.2187-10.293,3.4707-20.2744,5.0361-28.2705c2.8711-9.9531-0.8828-21.8652-9.4199-23.9922
-                        c-8.5351-2.1289-20.9121,2.5078-25.9453,17.1504c-6.8086,20.1738-8.2676,33.3027-5.6816,55.5195
-                        c1.0908,5.6123,3.1435,9.4649,5.7412,12.1036c0.0039,0.0127,0.0058,0.0254,0.0088,0.038h-0.003
-                        c0.0703,0.2745,0.9698,4.0772,0.9668,10.334c-0.0859,13.0518-3.5879,36.4366-27.2265,63.1504
-                        c-4.5879,5.1612-4.1221,13.0615,1.038,17.6485c2.3819,2.1171,5.3467,3.1572,8.2999,3.1572c3.4462,0,6.8779-1.417,9.3486-4.1953
-                        c20.831-23.3535,29.2803-46.2344,32.2041-63.7852c6.6406,12.1309,13.9004,30.5166,18.1113,57.211
-                        c0.9629,6.1679,6.2832,10.5732,12.336,10.5732c0.6416,0,1.29-0.0498,1.9433-0.1514c6.8203-1.0664,11.4854-7.459,10.419-14.2793
-                        C91.6289,181.354,81.6367,158.4029,72.6005,143.6909z M29.4472,135.3091h0.001c0,0.001,0.001,0.002,0.001,0.002L29.4472,135.3091z"/>
-                    <path fill="#00FF00" d="M53.5058,85.5972c-0.0039-4.665,0.7774-8.6895,1.543-11.4736c0.3828-1.3926,0.7598-2.4737,1.0215-3.1651
-                        c0.1328-0.3437,0.2343-0.5928,0.2949-0.7314c0.0215-0.0498,0.0371-0.0869,0.0469-0.1104c1.8672-3.9951,0.1504-8.749-3.8428-10.6269
-                        c-3.9971-1.8809-8.7627-0.1641-10.6436,3.8349v-0.0029c-0.291,0.6641-4.3925,9.4131-4.4199,22.2754
-                        c-0.0068,7.3389,1.4014,16.0557,5.7813,24.9727c4.3632,8.9218,11.6787,17.9257,22.9062,25.9306
-                        c1.4082,1.0069,3.0322,1.4902,4.6416,1.4912c2.4961,0,4.9561-1.165,6.5166-3.3506c2.5674-3.5947,1.7354-8.5908-1.8594-11.1582
-                        c-9.3203-6.6757-14.6718-13.5234-17.8418-19.957C54.497,97.0845,53.5107,90.9439,53.5058,85.5972z"/>
-                </svg>
-                Caminhada (minutos): <span id="walking-time-value">5</span>
-                <input type="range" id="walking-time-slider" min="5" max="30" value="5">
-            </label>
-        </div>
-        <!-- Slider para veículo -->
-        <div class="checkbox-container">
-            <input type="checkbox" id="driving-checkbox" checked>
-            <label for="driving-checkbox">
-                <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Ícone de veículo (carro) -->
-                    <path fill="#0000FF" d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H15V3H9v2H6.5c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/>
-                    <circle fill="#0000FF" cx="7.5" cy="14.5" r="1.5"/>
-                    <circle fill="#0000FF" cx="16.5" cy="14.5" r="1.5"/>
-                </svg>
-                Veículo (minutos): <span id="driving-time-value">15</span>
-                <input type="range" id="driving-time-slider" min="5" max="30" value="15">
-            </label>
-        </div>
-        <!-- Slider para bicicleta -->
-        <div class="checkbox-container">
-            <input type="checkbox" id="cycling-checkbox" checked>
-            <label for="cycling-checkbox">
-                <svg class="icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Ícone de bicicleta ajustado -->
-                    <style type="text/css">
-                        .st0{fill:none;stroke:#FFA500;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
-                    </style>
-                    <path class="st0" d="M21.5,3c-1.9,0.1-3.7,0.8-5,2.1L15.6,6h0c1.5,0,2.9,0.7,3.8,1.9C20,8.6,20.9,9,21.9,9c1.9,0,3.4-1.6,3.1-3.5
-                        C24.7,4,23.2,2.9,21.5,3z"/>
-                    <circle class="st0" cx="6" cy="24" r="5"/>
-                    <circle class="st0" cx="26" cy="24" r="5"/>
-                    <path class="st0" d="M26,14h-5l-3.2-3.2c-1-1-2.7-1.1-3.8-0.1l-3.5,3c-0.8,0.7-0.7,1.9,0.2,2.5L17,20l-2,6"/>
-                    <line class="st0" x1="18.5" y1="11.5" x2="12.2" y2="17"/>
-                    <circle cx="6" cy="24" r="1"/>
-                    <circle cx="26" cy="24" r="1"/>
-                </svg>
-                Bicicleta (minutos): <span id="cycling-time-value">5</span>
-                <input type="range" id="cycling-time-slider" min="5" max="30" value="5">
-            </label>
-        </div>
-        <!-- Legenda -->
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: #00FF00;"></div>
-                <span>Caminhada</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: #0000FF;"></div>
-                <span>Veículo</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: #FFA500;"></div>
-                <span>Bicicleta</span>
-            </div>
-        </div>
+  <!-- Mapa -->
+  <div id="map"></div>
+
+  <!-- Caixa de entrada para coordenadas -->
+  <div class="coordinate-input">
+    <input type="text" id="coordinates" placeholder="Digite Lat,Lon (ex: -26.4308,-49.2438)">
+    <button onclick="updateCoordinates()">Atualizar</button>
+  </div>
+
+  <!-- Controles de isócronas e estilo -->
+  <div class="map-controls">
+    <!-- Controles de estilo -->
+    <label>
+      <input type="radio" name="map-style" value="streets" checked> Streets
+    </label>
+    <label>
+      <input type="radio" name="map-style" value="satellite"> Satellite
+    </label>
+    <hr>
+    <!-- Slider para caminhada -->
+    <div class="checkbox-container">
+      <input type="checkbox" id="walking-checkbox" checked>
+      <label for="walking-checkbox">
+        <svg class="icon" viewBox="0 0 97.0102 229.4976" xmlns="http://www.w3.org/2000/svg">
+          <!-- Ícone de caminhada (SVG original) -->
+          <path fill="#00FF00" d="M83.9091,27.6011c2.8164-12.0996-4.7089-24.1934-16.8066-27.0098C55.0029-2.227,42.9091,5.3003,40.0908,17.398
+            c-2.8164,12.0996,4.709,24.1933,16.8066,27.0097C68.999,47.2261,81.0908,39.7007,83.9091,27.6011z"/>
+          <path fill="#00FF00" d="M72.6005,143.6909c-0.7587-1.2382-1.5068-2.3964-2.249-3.5185c-1.958-0.0918-3.8291-0.7334-5.4375-1.8809
+            c-10.7168-7.6435-18.6611-16.6455-23.6035-26.7558c-3.9902-8.126-6.0117-16.8535-6.0039-25.9405
+            c0.0254-12,3.5078-20.7031,4.5742-23.0869l0.0098-0.0176l0.0449-0.1025c1.6738-3.5615,5.2979-5.8623,9.2344-5.8623
+            c1.5058,0,2.9648,0.3281,4.3369,0.9746c5.0752,2.3858,7.2734,8.4639,4.8975,13.5488c-0.0723,0.1709-0.1622,0.3936-0.2793,0.7002
+            c-0.2344,0.6143-0.5918,1.6407-0.9551,2.958c-0.669,2.4327-1.4678,6.2959-1.4629,10.8877
+            c0.0039,5.9541,1.3223,11.6622,3.9209,16.962c0.0166,0.0341,0.0381,0.0673,0.0537,0.1015
+            c1.2187-10.293,3.4707-20.2744,5.0361-28.2705c2.8711-9.9531-0.8828-21.8652-9.4199-23.9922
+            c-8.5351-2.1289-20.9121,2.5078-25.9453,17.1504c-6.8086,20.1738-8.2676,33.3027-5.6816,55.5195
+            c1.0908,5.6123,3.1435,9.4649,5.7412,12.1036c0.0039,0.0127,0.0058,0.0254,0.0088,0.038h-0.003
+            c0.0703,0.2745,0.9698,4.0772,0.9668,10.334c-0.0859,13.0518-3.5879,36.4366-27.2265,63.1504
+            c-4.5879,5.1612-4.1221,13.0615,1.038,17.6485c2.3819,2.1171,5.3467,3.1572,8.2999,3.1572c3.4462,0,6.8779-1.417,9.3486-4.1953
+            c20.831-23.3535,29.2803-46.2344,32.2041-63.7852c6.6406,12.1309,13.9004,30.5166,18.1113,57.211
+            c0.9629,6.1679,6.2832,10.5732,12.336,10.5732c0.6416,0,1.29-0.0498,1.9433-0.1514c6.8203-1.0664,11.4854-7.459,10.419-14.2793
+            C91.6289,181.354,81.6367,158.4029,72.6005,143.6909z M29.4472,135.3091h0.001c0,0.001,0.001,0.002,0.001,0.002L29.4472,135.3091z"/>
+          <path fill="#00FF00" d="M53.5058,85.5972c-0.0039-4.665,0.7774-8.6895,1.543-11.4736c0.3828-1.3926,0.7598-2.4737,1.0215-3.1651
+            c0.1328-0.3437,0.2343-0.5928,0.2949-0.7314c0.0215-0.0498,0.0371-0.0869,0.0469-0.1104c1.8672-3.9951,0.1504-8.749-3.8428-10.6269
+            c-3.9971-1.8809-8.7627-0.1641-10.6436,3.8349v-0.0029c-0.291,0.6641-4.3925,9.4131-4.4199,22.2754
+            c-0.0068,7.3389,1.4014,16.0557,5.7813,24.9727c4.3632,8.9218,11.6787,17.9257,22.9062,25.9306
+            c1.4082,1.0069,3.0322,1.4902,4.6416,1.4912c2.4961,0,4.9561-1.165,6.5166-3.3506c2.5674-3.5947,1.7354-8.5908-1.8594-11.1582
+            c-9.3203-6.6757-14.6718-13.5234-17.8418-19.957C54.497,97.0845,53.5107,90.9439,53.5058,85.5972z"/>
+        </svg>
+        Caminhada (minutos): <span id="walking-time-value">5</span>
+        <input type="range" id="walking-time-slider" min="5" max="30" value="5">
+      </label>
     </div>
-    <script>
-        // Substitua pelo seu token de acesso do Mapbox
-        mapboxgl.accessToken = 'pk.eyJ1IjoiYXJxamhvbnlsaXJhIiwiYSI6ImNtMDVtM3plYzBkeDcybG9oMmt1cHdrNWsifQ.1zZtn2H7Z9omfLIdqXykNw';
+    <!-- Slider para veículo -->
+    <div class="checkbox-container">
+      <input type="checkbox" id="driving-checkbox" checked>
+      <label for="driving-checkbox">
+        <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <!-- Ícone de veículo (carro) -->
+          <path fill="#0000FF" d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H15V3H9v2H6.5c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/>
+          <circle fill="#0000FF" cx="7.5" cy="14.5" r="1.5"/>
+          <circle fill="#0000FF" cx="16.5" cy="14.5" r="1.5"/>
+        </svg>
+        Veículo (minutos): <span id="driving-time-value">15</span>
+        <input type="range" id="driving-time-slider" min="5" max="30" value="15">
+      </label>
+    </div>
+    <!-- Slider para bicicleta -->
+    <div class="checkbox-container">
+      <input type="checkbox" id="cycling-checkbox" checked>
+      <label for="cycling-checkbox">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Ícone de bicicleta substituído pelo SVG fornecido -->
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M16 6C17.1046 6 18 5.10457 18 4C18 2.89543 17.1046 2 16 2C14.8954 2 14 2.89543 14 4C14 5.10457 14.8954 6 16 6ZM13.2428 5.52993C13.5738 5.61279 13.8397 5.85869 13.9482 6.18222C14.13 6.72461 14.3843 7.20048 14.697 7.59998C15.5586 8.70094 16.9495 9.32795 18.8356 9.01361C19.3804 8.92281 19.8956 9.29083 19.9864 9.8356C20.0772 10.3804 19.7092 10.8956 19.1644 10.9864C17.0282 11.3424 15.1791 10.7992 13.8435 9.60462L11.1291 11.9869L12.7524 13.8413C12.912 14.0236 13 14.2577 13 14.5V19C13 19.5523 12.5523 20 12 20C11.4477 20 11 19.5523 11 19V14.8759L8.9689 12.5556L8.92455 12.5059C8.68548 12.2386 8.28531 11.7911 8.11145 11.2626C8.00463 10.9379 7.97131 10.5628 8.08578 10.1667C8.1967 9.78279 8.42374 9.45733 8.7058 9.18044L8.71971 9.16705L12.3134 5.77299C12.5614 5.53871 12.9118 5.44708 13.2428 5.52993ZM2 17C2 15.3431 3.34315 14 5 14C6.65685 14 8 15.3431 8 17C8 18.6569 6.65685 20 5 20C3.34315 20 2 18.6569 2 17ZM5 12C2.23858 12 0 14.2386 0 17C0 19.7614 2.23858 22 5 22C7.76142 22 10 19.7614 10 17C10 14.2386 7.76142 12 5 12ZM16 17C16 15.3431 17.3431 14 19 14C20.6569 14 22 15.3431 22 17C22 18.6569 20.6569 20 19 20C17.3431 20 16 18.6569 16 17ZM19 12C16.2386 12 14 14.2386 14 17C14 19.7614 16.2386 22 19 22C21.7614 22 24 19.7614 24 17C24 14.2386 21.7614 12 19 12Z" fill="#000000"/>
+        </svg>
+        Bicicleta (minutos): <span id="cycling-time-value">5</span>
+        <input type="range" id="cycling-time-slider" min="5" max="30" value="5">
+      </label>
+    </div>
+    <!-- Legenda -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #00FF00;"></div>
+        <span>Caminhada</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #0000FF;"></div>
+        <span>Veículo</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #FFA500;"></div>
+        <span>Bicicleta</span>
+      </div>
+    </div>
+  </div>
 
-        // Coordenada central
-        const center = [-49.24382011056316, -26.430824903053576];
+  <script>
+    // Substitua pelo seu token de acesso do Mapbox
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYXJxamhvbnlsaXJhIiwiYSI6ImNtMDVtM3plYzBkeDcybG9oMmt1cHdrNWsifQ.1zZtn2H7Z9omfLIdqXykNw';
 
-        // Inicializa o mapa
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: center,
-            zoom: 14
-        });
+    // Variável global para coordenadas atuais (formato [lon, lat])
+    let currentCoordinates = [-49.24382011056316, -26.430824903053576];
+    let marker = null;
 
-        // Adiciona um marcador no ponto central
-        new mapboxgl.Marker().setLngLat(center).addTo(map);
+    // Inicializa o mapa com as coordenadas atuais
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: currentCoordinates,
+      zoom: 14
+    });
 
-        // Função para buscar a isócrona
-        async function fetchIsochrone(minutes, profile, layerId, color) {
-            const url = `https://api.mapbox.com/isochrone/v1/mapbox/${profile}/${center[0]},${center[1]}?contours_minutes=${minutes}&polygons=true&access_token=${mapboxgl.accessToken}`;
+    // Cria o marcador inicial
+    marker = new mapboxgl.Marker().setLngLat(currentCoordinates).addTo(map);
 
-            const response = await fetch(url);
-            const data = await response.json();
+    // Função para atualizar as coordenadas a partir da entrada do usuário
+    function updateCoordinates() {
+      const input = document.getElementById('coordinates').value;
+      const [lat, lon] = input.split(',').map(Number);
 
-            // Remove a camada de isócrona existente, se houver
-            if (map.getLayer(layerId)) {
-                map.removeLayer(layerId);
-                map.removeSource(layerId);
-            }
+      if (!isValidCoordinate(lat, lon)) {
+        alert("Coordenadas inválidas! Use o formato: Lat,Lon");
+        return;
+      }
 
-            // Adiciona a nova isócrona ao mapa
-            map.addSource(layerId, {
-                type: 'geojson',
-                data: data
-            });
+      // Atualiza as coordenadas atuais (note que Mapbox usa [lon, lat])
+      currentCoordinates = [lon, lat];
 
-            map.addLayer({
-                id: layerId,
-                type: 'fill',
-                source: layerId,
-                paint: {
-                    'fill-color': color,
-                    'fill-opacity': 0.3
-                }
-            });
+      // Atualiza o mapa (flyTo) e o marcador
+      map.flyTo({ center: currentCoordinates, essential: true });
+      if (marker) marker.remove();
+      marker = new mapboxgl.Marker().setLngLat(currentCoordinates).addTo(map);
+
+      // Recarrega as isócronas ativas para a nova localização
+      reloadActiveIsochrones();
+    }
+
+    // Função de validação de coordenadas
+    function isValidCoordinate(lat, lon) {
+      return !isNaN(lat) && !isNaN(lon) &&
+             lat >= -90 && lat <= 90 &&
+             lon >= -180 && lon <= 180;
+    }
+
+    // Recarrega as isócronas ativas (se os checkboxes estiverem marcados)
+    function reloadActiveIsochrones() {
+      if (document.getElementById('walking-checkbox').checked) {
+        const minutes = parseInt(document.getElementById('walking-time-slider').value);
+        fetchIsochrone(minutes, 'walking', 'walking-isochrone', '#00FF00');
+      }
+      if (document.getElementById('driving-checkbox').checked) {
+        const minutes = parseInt(document.getElementById('driving-time-slider').value);
+        fetchIsochrone(minutes, 'driving', 'driving-isochrone', '#0000FF');
+      }
+      if (document.getElementById('cycling-checkbox').checked) {
+        const minutes = parseInt(document.getElementById('cycling-time-slider').value);
+        fetchIsochrone(minutes, 'cycling', 'cycling-isochrone', '#FFA500');
+      }
+    }
+
+    // Função para buscar a isócrona com base nas coordenadas atuais
+    async function fetchIsochrone(minutes, profile, layerId, color) {
+      const url = `https://api.mapbox.com/isochrone/v1/mapbox/${profile}/${currentCoordinates[0]},${currentCoordinates[1]}?contours_minutes=${minutes}&polygons=true&access_token=${mapboxgl.accessToken}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      // Se a camada já existir, remove-a
+      if (map.getLayer(layerId)) {
+        map.removeLayer(layerId);
+        map.removeSource(layerId);
+      }
+
+      // Adiciona a nova fonte e camada de isócrona
+      map.addSource(layerId, {
+        type: 'geojson',
+        data: data
+      });
+      map.addLayer({
+        id: layerId,
+        type: 'fill',
+        source: layerId,
+        paint: {
+          'fill-color': color,
+          'fill-opacity': 0.3
         }
+      });
+    }
 
-        // Atualiza as isócronas ao mover os sliders
-        document.getElementById('walking-time-slider').addEventListener('input', (e) => {
-            const minutes = parseInt(e.target.value);
-            document.getElementById('walking-time-value').textContent = minutes;
-            if (document.getElementById('walking-checkbox').checked) {
-                fetchIsochrone(minutes, 'walking', 'walking-isochrone', '#00FF00');
-            }
-        });
+    // Eventos para sliders: atualizam o valor exibido e a isócrona correspondente
+    document.getElementById('walking-time-slider').addEventListener('input', (e) => {
+      const minutes = parseInt(e.target.value);
+      document.getElementById('walking-time-value').textContent = minutes;
+      if (document.getElementById('walking-checkbox').checked) {
+        fetchIsochrone(minutes, 'walking', 'walking-isochrone', '#00FF00');
+      }
+    });
+    document.getElementById('driving-time-slider').addEventListener('input', (e) => {
+      const minutes = parseInt(e.target.value);
+      document.getElementById('driving-time-value').textContent = minutes;
+      if (document.getElementById('driving-checkbox').checked) {
+        fetchIsochrone(minutes, 'driving', 'driving-isochrone', '#0000FF');
+      }
+    });
+    document.getElementById('cycling-time-slider').addEventListener('input', (e) => {
+      const minutes = parseInt(e.target.value);
+      document.getElementById('cycling-time-value').textContent = minutes;
+      if (document.getElementById('cycling-checkbox').checked) {
+        fetchIsochrone(minutes, 'cycling', 'cycling-isochrone', '#FFA500');
+      }
+    });
 
-        document.getElementById('driving-time-slider').addEventListener('input', (e) => {
-            const minutes = parseInt(e.target.value);
-            document.getElementById('driving-time-value').textContent = minutes;
-            if (document.getElementById('driving-checkbox').checked) {
-                fetchIsochrone(minutes, 'driving', 'driving-isochrone', '#0000FF');
-            }
-        });
+    // Eventos para checkboxes: habilitam/desabilitam a exibição das isócronas
+    document.getElementById('walking-checkbox').addEventListener('change', (e) => {
+      if (e.target.checked) {
+        const minutes = parseInt(document.getElementById('walking-time-slider').value);
+        fetchIsochrone(minutes, 'walking', 'walking-isochrone', '#00FF00');
+      } else if (map.getLayer('walking-isochrone')) {
+        map.removeLayer('walking-isochrone');
+        map.removeSource('walking-isochrone');
+      }
+    });
+    document.getElementById('driving-checkbox').addEventListener('change', (e) => {
+      if (e.target.checked) {
+        const minutes = parseInt(document.getElementById('driving-time-slider').value);
+        fetchIsochrone(minutes, 'driving', 'driving-isochrone', '#0000FF');
+      } else if (map.getLayer('driving-isochrone')) {
+        map.removeLayer('driving-isochrone');
+        map.removeSource('driving-isochrone');
+      }
+    });
+    document.getElementById('cycling-checkbox').addEventListener('change', (e) => {
+      if (e.target.checked) {
+        const minutes = parseInt(document.getElementById('cycling-time-slider').value);
+        fetchIsochrone(minutes, 'cycling', 'cycling-isochrone', '#FFA500');
+      } else if (map.getLayer('cycling-isochrone')) {
+        map.removeLayer('cycling-isochrone');
+        map.removeSource('cycling-isochrone');
+      }
+    });
 
-        document.getElementById('cycling-time-slider').addEventListener('input', (e) => {
-            const minutes = parseInt(e.target.value);
-            document.getElementById('cycling-time-value').textContent = minutes;
-            if (document.getElementById('cycling-checkbox').checked) {
-                fetchIsochrone(minutes, 'cycling', 'cycling-isochrone', '#FFA500');
-            }
-        });
+    // Atualiza as isócronas iniciais quando o mapa carregar
+    map.on('load', () => {
+      fetchIsochrone(5, 'walking', 'walking-isochrone', '#00FF00');
+      fetchIsochrone(15, 'driving', 'driving-isochrone', '#0000FF');
+      fetchIsochrone(5, 'cycling', 'cycling-isochrone', '#FFA500');
+    });
 
-        // Habilita/desabilita as camadas conforme a seleção das caixas
-        document.getElementById('walking-checkbox').addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            if (isChecked) {
-                const minutes = parseInt(document.getElementById('walking-time-slider').value);
-                fetchIsochrone(minutes, 'walking', 'walking-isochrone', '#00FF00');
-            } else {
-                if (map.getLayer('walking-isochrone')) {
-                    map.removeLayer('walking-isochrone');
-                    map.removeSource('walking-isochrone');
-                }
-            }
-        });
-
-        document.getElementById('driving-checkbox').addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            if (isChecked) {
-                const minutes = parseInt(document.getElementById('driving-time-slider').value);
-                fetchIsochrone(minutes, 'driving', 'driving-isochrone', '#0000FF');
-            } else {
-                if (map.getLayer('driving-isochrone')) {
-                    map.removeLayer('driving-isochrone');
-                    map.removeSource('driving-isochrone');
-                }
-            }
-        });
-
-        document.getElementById('cycling-checkbox').addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            if (isChecked) {
-                const minutes = parseInt(document.getElementById('cycling-time-slider').value);
-                fetchIsochrone(minutes, 'cycling', 'cycling-isochrone', '#FFA500');
-            } else {
-                if (map.getLayer('cycling-isochrone')) {
-                    map.removeLayer('cycling-isochrone');
-                    map.removeSource('cycling-isochrone');
-                }
-            }
-        });
-
-        // Carrega as isócronas iniciais
-        map.on('load', () => {
-            fetchIsochrone(5, 'walking', 'walking-isochrone', '#00FF00');
-            fetchIsochrone(15, 'driving', 'driving-isochrone', '#0000FF');
-            fetchIsochrone(5, 'cycling', 'cycling-isochrone', '#FFA500');
-        });
-
-        // Controles de estilo do mapa
-        document.querySelectorAll('input[name="map-style"]').forEach((input) => {
-            input.addEventListener('change', (e) => {
-                const style = e.target.value === 'satellite' ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/streets-v11';
-                map.setStyle(style);
-            });
-        });
-    </script>
+    // Eventos para alternar o estilo do mapa
+    document.querySelectorAll('input[name="map-style"]').forEach((input) => {
+      input.addEventListener('change', (e) => {
+        const style = e.target.value === 'satellite'
+                      ? 'mapbox://styles/mapbox/satellite-v9'
+                      : 'mapbox://styles/mapbox/streets-v11';
+        map.setStyle(style);
+      });
+    });
+  </script>
 </body>
 </html>
