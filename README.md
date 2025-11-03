@@ -3,4 +3,5 @@ Uma cidade de 15 minutos é um conceito urbano residencial no qual a maioria das
 (https://pt.wikipedia.org/wiki/Cidade_de_15_minutos)
 
 Este estudo de isocronas ao longo de um ponto geografico, é um experimento em html, será utilizado para analise urbana, durante o desenvolvimento de projetos urbano. 
+Link:  https://jhonylira.github.io/15-minutes-city/
 
